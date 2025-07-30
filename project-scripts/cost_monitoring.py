@@ -39,12 +39,12 @@ def main():
     
     # Check if data directory exists
     if not os.path.exists(data_path):
-        print(f"⚠️  Directory '{data_path}' not found!")
-        print("📁 Available data files:")
+        print(f"  Directory '{data_path}' not found!")
+        print(" Available data files:")
         if os.path.exists("data"):
             for file in Path("data").glob("*.md"):
                 print(f"   - {file}")
-        print(f"\n💡 Update DATA_PATH in create_database.py or move files to {data_path}/")
+        print(f"\n Update DATA_PATH in create_database.py or move files to {data_path}/")
         return
     
     # Process all markdown files
@@ -55,10 +55,10 @@ def main():
         tokens = estimate_file_tokens(str(md_file))
         total_tokens += tokens
         file_count += 1
-        print(f"📄 {md_file.name}: {tokens:,} tokens")
+        print(f" {md_file.name}: {tokens:,} tokens")
     
     if file_count == 0:
-        print(f"❌ No .md files found in {data_path}")
+        print(f" No .md files found in {data_path}")
         return
     
     # Calculate chunks and costs
@@ -70,23 +70,23 @@ def main():
     embedding_cost = estimate_embedding_cost(total_tokens)
     
     print(f"\n=== Processing Summary ===")
-    print(f"📊 Total files: {file_count}")
-    print(f"🔤 Total tokens: {total_tokens:,}")
-    print(f"📦 Estimated chunks: {estimated_chunks:,}")
-    print(f"💰 Embedding cost: ${embedding_cost:.6f}")
+    print(f" Total files: {file_count}")
+    print(f" Total tokens: {total_tokens:,}")
+    print(f" Estimated chunks: {estimated_chunks:,}")
+    print(f" Embedding cost: ${embedding_cost:.6f}")
     
     # Cost context
     print(f"\n=== Cost Context ===")
     if embedding_cost < 0.001:
-        print("✅ Very low cost - safe to proceed")
+        print(" Very low cost - safe to proceed")
     elif embedding_cost < 0.01:
-        print("✅ Low cost - proceed with confidence")
+        print(" Low cost - proceed with confidence")
     elif embedding_cost < 0.10:
-        print("⚠️  Moderate cost - review before proceeding")
+        print("  Moderate cost - review before proceeding")
     else:
-        print("⚠️  High cost - consider chunking strategy")
+        print("  High cost - consider chunking strategy")
     
-    print(f"☕ Cost comparison: ~{embedding_cost/0.005:.1f}x the price of a coffee")
+    print(f" Cost comparison: ~{embedding_cost/0.005:.1f}x the price of a coffee")
 
 if __name__ == "__main__":
     main()

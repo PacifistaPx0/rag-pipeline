@@ -1,4 +1,5 @@
 import argparse
+import time
 
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -19,7 +20,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 CHROMA_PATH = "gardens_chroma"
 
 PROMPT_TEMPLATE = """
-Answer the question based on the following context:
+Answer the question based on the following context, try to elaborate some more:
 
 {context}
 
@@ -30,6 +31,9 @@ Answer the question: {question}
 
 
 def main():
+    # start time counter
+    start = time.perf_counter()
+
     # Create CLI
     parser = argparse.ArgumentParser()
     parser.add_argument("query_text", type=str, help="The query text.")
@@ -64,6 +68,11 @@ def main():
     print("\nSources:")
     print("-" * 50)
     print(f"{sources}")
+
+    # end time counter
+    end = time.perf_counter()
+    execution_time = end - start
+    print(f"time taken to run script: {execution_time:.2f} seconds")
 
 
 if __name__ == "__main__":
