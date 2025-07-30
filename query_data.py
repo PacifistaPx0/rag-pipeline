@@ -17,7 +17,7 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-CHROMA_PATH = "gardens_chroma"
+CHROMA_PATH = "chroma"
 
 PROMPT_TEMPLATE = """
 Answer the question based on the following context, try to elaborate some more:
