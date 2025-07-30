@@ -17,9 +17,9 @@ load_dotenv()
 # Set OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-CHROMA_PATH = "chroma"
+CHROMA_PATH = "gardens_chroma"
 # Updated to use smaller Alice in Wonderland book for initial testing
-DATA_PATH = "data/books2"
+DATA_PATH = "data/books"
 
 
 def main():
@@ -69,8 +69,7 @@ def save_to_chroma(chunks: list[Document]):
     db = Chroma.from_documents(
         chunks, OpenAIEmbeddings(), persist_directory=CHROMA_PATH
     )
-    
-    db.persist()
+
     print(f"Saved {len(chunks)} chunks to {CHROMA_PATH}.")
 
 
