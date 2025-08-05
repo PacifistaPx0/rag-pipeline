@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Pipeline - Document Q&A</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+        }
+
+        .upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            background: #f8f9fa;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .upload-area.dragover, .upload-area.drag-over {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+            pointer-events: none;
+        }
+
+        .upload-text {
+            margin-bottom: 15px;
+            color: #7f8c8d;
+            pointer-events: none;
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .upload-btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .upload-btn:hover {
+            background: #2980b9;
+        }
+
+        .upload-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .query-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .query-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .query-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .query-btn {
+            padding: 12px 24px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .query-btn:hover {
+            background: #229954;
+        }
+
+        .query-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .answer {
+            margin-bottom: 20px;
+            line-height: 1.8;
+            color: #2c3e50;
+        }
+
+        .sources {
+            border-top: 1px solid #ecf0f1;
+            padding-top: 20px;
+        }
+
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .answer {
+            margin-bottom: 30px;
+        }
+
+        .answer h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        #answerText {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .sources {
+            margin-top: 30px;
+        }
+
+        .sources h4 {
+            margin-bottom: 15px;
+            color: #34495e;
+        }
+
+        .source {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .source-preview {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #d5f4e6;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
+
+        .status-error {
+            background: #fdf2f2;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .status-loading {
+            background: #e3f2fd;
+            color: #3498db;
+            border: 1px solid #3498db;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .query-form {
+                flex-direction: column;
+            }
+        }
+
+        /* Additional styles for JavaScript functionality */
+        .error-message, .success-message {
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .error-message {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .success-message {
+            background-color: #efe;
+            color: #363;
+            border: 1px solid #cfc;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 2px solid #ddd;
+            border-top: 2px solid #007acc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-sources {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .upload-area.drag-over {
+            border-color: #007acc;
+            background-color: #f0f8ff;
+        }
+
+        .upload-area.drag-over .upload-icon {
+            color: #007acc;
+        }
+
+        .source-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .source-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .source-score {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .source-content {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RAG Pipeline</h1>
+            <p>Upload a markdown file and ask questions about its content</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">
+                    <strong>Drop your markdown file here or click to browse</strong><br>
+                    <small>Maximum file size: 2MB | Supported format: .md</small>
+                </div>
+                <input type="file" id="fileInput" class="file-input" accept=".md">
+            </div>
+            
+            <div class="file-details" id="fileDetails" style="display: none;">
+                <div class="file-name" id="fileName"></div>
+                <div class="file-size" id="fileSize"></div>
+                <button class="upload-btn" id="uploadBtn" disabled>Select File First</button>
+            </div>
+        </div>
+
+        <div class="query-section" id="querySection" style="display: none;">
+            <h3>Ask Questions About Your Document</h3>
+            <div class="query-form">
+                <input type="text" id="queryInput" class="query-input" placeholder="What would you like to know about this document?">
+                <button id="queryBtn" class="query-btn">Ask Question</button>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="answer">
+                <h4>Answer:</h4>
+                <div id="answerText"></div>
+            </div>
+            
+            <div class="sources">
+                <h4>Sources:</h4>
+                <div id="sourcesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
